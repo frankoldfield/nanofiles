@@ -1,7 +1,9 @@
 package es.um.redes.nanoFiles.directory.connector;
 
 import java.io.IOException;
+import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import es.um.redes.nanoFiles.directory.message.DirMessage;
 
@@ -41,6 +43,8 @@ public class DirectoryConnector {
 		 * resto de la ejecución del programa, y guardar su dirección (IP:puerto) en
 		 * atributos
 		 */
+		socket = new DatagramSocket();
+		directoryAddress = new InetSocketAddress(InetAddress.getByName(address), DEFAULT_PORT);
 	}
 
 	/**
@@ -49,7 +53,7 @@ public class DirectoryConnector {
 	 * @param requestData los datos a enviar al directorio (mensaje de solicitud)
 	 * @return los datos recibidos del directorio (mensaje de respuesta)
 	 */
-	public byte[] sendAndReceiveDatagrams(byte[] requestData) {
+	public byte[] sendAndReceiveDatagrams(byte[] requestData) throws IOException {
 		byte responseData[] = new byte[DirMessage.PACKET_MAX_SIZE];
 		/*
 		 * TODO: Enviar datos en un datagrama al directorio y recibir una respuesta.
@@ -57,10 +61,14 @@ public class DirectoryConnector {
 		 * que no se reciba respuesta en el plazo de TIMEOUT. En caso de salte el
 		 * timeout, se debe reintentar como máximo en MAX_NUMBER_OF_ATTEMPTS ocasiones
 		 */
+		DatagramPacket packetToServer = new DatagramPacket(requestData, requestData.length, directoryAddress);
+		socket.send(packetToServer);
+		DatagramPacket packetFromServer = new DatagramPacket(responseData, responseData.length);
+		socket.receive(packetFromServer);
 		return responseData;
 	}
 
-	public int logIntoDirectory() { // Returns number of file servers
+	public int logIntoDirectory() throws IOException{ // Returns number of file servers
 		byte[] requestData = DirMessage.buildLoginRequestMessage();
 		byte[] responseData = this.sendAndReceiveDatagrams(requestData);
 		return DirMessage.processLoginResponse(responseData);

@@ -41,11 +41,11 @@ public class DirectoryThread extends Thread {
 	private HashMap<String, FileInfo> files;
 
 	public DirectoryThread(int directoryPort, double corruptionProbability) throws SocketException {
-		/*
-		 * TODO: Crear dirección de socket con el puerto en el que escucha el directorio
-		 */
-		// TODO: Crear el socket UDP asociado a la dirección de socket anterior
-		messageDiscardProbability = corruptionProbability;
+			//Direccion de socket con el puerto en el que escucha el directorio
+			InetSocketAddress serverAddress = new InetSocketAddress(directoryPort);
+			// TODO: Crear el socket UDP asociado a la dirección de socket anterior
+			socket = new DatagramSocket(serverAddress);
+			messageDiscardProbability = corruptionProbability;
 
 	}
 
@@ -60,8 +60,10 @@ public class DirectoryThread extends Thread {
 			try {
 
 				// TODO: Recibimos a través del socket el datagrama con mensaje de solicitud
+				socket.receive(requestPacket);
 
 				// TODO: Averiguamos quién es el cliente
+				clientId = (InetSocketAddress) requestPacket.getSocketAddress();
 
 				// Vemos si el mensaje debe ser descartado por la probabilidad de descarte
 
@@ -95,6 +97,11 @@ public class DirectoryThread extends Thread {
 		
 		// TODO: Actualizar estado del directorio y enviar una respuesta en función del
 		// tipo de mensaje recibido
+		//NOTA: Solo boletin 2.
+		String messageToClient = new String(data).trim().toUpperCase(); //Este data es el buffer que nos llega por el puerto 6868
+		byte[] dataToClient = messageToClient.getBytes();
+		DatagramPacket packetToClient = new DatagramPacket(dataToClient, dataToClient.length, clientAddr);
+		socket.send(packetToClient);
 	}
 
 	// Método para enviar la confirmación del registro

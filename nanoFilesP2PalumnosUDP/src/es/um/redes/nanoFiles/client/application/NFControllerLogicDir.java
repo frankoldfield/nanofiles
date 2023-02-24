@@ -25,6 +25,32 @@ public class NFControllerLogicDir {
 		 * el "login", informar por pantalla del éxito/fracaso y devolver dicho valor
 		 */
 		boolean result = false;
+		boolean connectionOK = true;
+		try {
+			directoryConnector = new DirectoryConnector(directoryHostname);
+		} catch (IOException e) {
+			System.err.println("Fallo en la conexión con el directorio.");
+			connectionOK = false;
+			e.printStackTrace();
+		}
+		if (connectionOK){
+			String messageToServer = "Mensaje de prueba";
+			byte[] dataToServer = messageToServer.getBytes();
+			System.out.println("MENSAJE A ENVIAR: " + messageToServer);
+			byte[] responseData;
+			try {
+				responseData = directoryConnector.sendAndReceiveDatagrams(dataToServer);
+			} catch (IOException e) {
+				responseData = null;
+			}
+			if (responseData == null) {
+				System.err.println("Fallo en la comunicación con el directorio.");
+			}
+			else {
+				System.out.println("MENSAJE RECIBIDO: " + new String(responseData));
+				result = true;
+			}
+		}
 		return result;
 	}
 
