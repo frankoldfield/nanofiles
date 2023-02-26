@@ -31,7 +31,7 @@ public class NFControllerLogicDir {
 		} catch (IOException e) {
 			System.err.println("Fallo en la conexión con el directorio.");
 			connectionOK = false;
-			e.printStackTrace();
+			//e.printStackTrace();
 		}
 		if (connectionOK){
 			String messageToServer = "Mensaje de prueba";
@@ -69,7 +69,32 @@ public class NFControllerLogicDir {
 		 * pantalla si el registro fue exitoso o fallido, y devolver dicho valor
 		 * booleano. Se debe comprobar antes que el nick no contiene el carácter ':'.
 		 */
+		/*boolean prueba = DirectoryThread.
+		directoryConnector.
+		directoryConnector.registerNickname(nickname);*/
+		
 		boolean result = false;
+		if (nickname.length() != 4) {
+			System.err.println("* (the nickname must have 4 characters)");
+			return false;
+		}
+		byte[] dataToServer = nickname.getBytes();
+		byte[] responseData;
+		try {
+			responseData = directoryConnector.sendAndReceiveDatagrams(dataToServer);
+		} catch (IOException e) {
+			responseData = null;
+		}
+		if (responseData == null) {
+			System.err.println("* Error communicating with directory.");
+		}
+		else {
+			String messageFromServer = new String(responseData).trim();
+			System.out.println(messageFromServer);
+			if (nickname.equals(messageFromServer) && !messageFromServer.equals("FAIL")) {
+				result = true;
+			}
+		}
 		return result;
 	}
 
