@@ -157,6 +157,20 @@ public class NFController {
 			 * caso de éxito, podemos pasar a otro estado del autómata que permite nuevos
 			 * comandos
 			 */
+			if (clientStatus == PRE_REGISTRATION) {
+				result = controllerDir.registerNickInDirectory(nickname);
+				if (result) {
+					clientStatus = OFF_BROWSER;
+					System.out.println("* Your nickname is now " + nickname);
+				}
+				else {
+					System.out.println("* The nickname is already registered. Try a different one");
+				}
+			}
+			else {
+				System.out.println("* To register it is necessary to connect to the directory " + 
+						"(login) and not be already registered before.");
+			}
 			break;
 		case NFCommands.COM_BROWSE:
 			if (clientStatus == OFF_BROWSER) {
