@@ -41,11 +41,15 @@ public class DirectoryThread extends Thread {
 	private HashMap<String, FileInfo> files;
 
 	public DirectoryThread(int directoryPort, double corruptionProbability) throws SocketException {
-			//Direccion de socket con el puerto en el que escucha el directorio
-			InetSocketAddress serverAddress = new InetSocketAddress(directoryPort);
+		/*
+		 * TODO: Crear dirección de socket con el puerto en el que escucha el directorio
+		 */
+		InetSocketAddress serverAddress = new InetSocketAddress(directoryPort);
 			// TODO: Crear el socket UDP asociado a la dirección de socket anterior
 			socket = new DatagramSocket(serverAddress);
 			messageDiscardProbability = corruptionProbability;
+			//Creamos el diccionario "nicks".
+			nicks = new HashMap<String, LocalDateTime>();
 
 	}
 
@@ -92,17 +96,35 @@ public class DirectoryThread extends Thread {
 
 	// Método para procesar la solicitud enviada por clientAddr
 	public void processRequestFromClient(byte[] data, InetSocketAddress clientAddr) throws IOException {
-		// TODO: Construir un objeto mensaje (DirMessage) a partir de los datos recibidos
-		// PeerMessage.buildMessageFromReceivedData(data)
-		
-		// TODO: Actualizar estado del directorio y enviar una respuesta en función del
-		// tipo de mensaje recibido
-		//NOTA: Solo boletin 2.
-		String messageToClient = new String(data).trim().toUpperCase(); //Este data es el buffer que nos llega por el puerto 6868
-		byte[] dataToClient = messageToClient.getBytes();
-		DatagramPacket packetToClient = new DatagramPacket(dataToClient, dataToClient.length, clientAddr);
-		socket.send(packetToClient);
-	}
+		// TODO: Construir un objeto mensaje (DirMessage) a partir de los datos
+				// recibidos
+				// PeerMessage.buildMessageFromReceivedData(data)
+
+				// TODO: Actualizar estado del directorio y enviar una respuesta en función del
+				// tipo de mensaje recibido
+				// NOTA: Solo boletín 2.
+				/*String messageToClient = new String(data).trim();
+				byte[] dataToClient = messageToClient.getBytes();
+				DatagramPacket packetToClient = new DatagramPacket(dataToClient, dataToClient.length, clientAddr);
+				socket.send(packetToClient); */
+				//NOTA: Sólo boletín 3.
+				String messageFromClient = new String(data).trim();
+				String messageToClient = new String(messageFromClient);
+				if (messageFromClient.length() == 4) {
+					String nickToRegister = new String(messageFromClient);
+					if (nicks.containsKey(nickToRegister)) {
+						messageToClient = new String("FAIL");
+					}
+					else {
+						nicks.put(nickToRegister, LocalDateTime.now());
+					}
+					
+					//TODO...
+				}
+				byte[] dataToClient = messageToClient.getBytes();
+				DatagramPacket packetToClient = new DatagramPacket(dataToClient, dataToClient.length, clientAddr);
+				socket.send(packetToClient);
+			}
 
 	// Método para enviar la confirmación del registro
 	private void sendLoginOK(InetSocketAddress clientAddr) throws IOException {
