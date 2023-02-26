@@ -5,6 +5,7 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.SocketTimeoutException;
 import es.um.redes.nanoFiles.directory.message.DirMessage;
 
 /**
@@ -61,10 +62,33 @@ public class DirectoryConnector {
 		 * que no se reciba respuesta en el plazo de TIMEOUT. En caso de salte el
 		 * timeout, se debe reintentar como máximo en MAX_NUMBER_OF_ATTEMPTS ocasiones
 		 */
+		/*
+		 *DatagramPacket packetToServer = new DatagramPacket(requestData, requestData.length, directoryAddress);
+		 *socket.send(packetToServer);
+		 *DatagramPacket packetFromServer = new DatagramPacket(responseData, responseData.length);
+		 *socket.receive(packetFromServer);
+		 */
+		
 		DatagramPacket packetToServer = new DatagramPacket(requestData, requestData.length, directoryAddress);
-		socket.send(packetToServer);
 		DatagramPacket packetFromServer = new DatagramPacket(responseData, responseData.length);
-		socket.receive(packetFromServer);
+		int i = 0;
+		while (i < MAX_NUMBER_OF_ATTEMPTS) { //Bucle para reintentos
+			socket.send(packetToServer); //Enviamos el paquete al servidor
+
+			socket.setSoTimeout(TIMEOUT);//Establecemos el timeout al valor que hemos declarado mas arriba
+
+			try {
+				socket.receive(packetFromServer); //Intentamos recibir el paquete
+			} catch (SocketTimeoutException e) { //Si hay un timeout
+				i++;//Aumentamos i para indicar que hemos hecho un intento
+				System.err.println("Trying again...");//Salida de error
+				continue;
+			}
+			break;
+		}
+		if (i == MAX_NUMBER_OF_ATTEMPTS) { //Si hemos sobrepasado el número máximo deintentos y hemos salido del bucle es que no se ha podido enviar
+			responseData = null;
+		}
 		return responseData;
 	}
 
